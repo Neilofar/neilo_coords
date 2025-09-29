@@ -4,19 +4,9 @@ game 'gta5'
 
 author 'Neilofar'
 description 'Tennisball coord helper for ox_target'
-version '1.0.0'
+version '1.0.1'
 
 
 client_scripts {
 'client.lua'
-}
-
-
-ui_page 'html/index.html'
-
-
-files {
-'html/index.html',
-'html/script.js',
-'html/style.css'
 }
