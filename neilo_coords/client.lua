@@ -1,9 +1,9 @@
-local tennisModel = `prop_tennis_ball`
+local tennisModel = `prop_tennis_ball` -- Model
 local ball = nil
 local enabled = false
 local lastCoords = nil
 
--- helper: rot to dir
+-- helper: convert cam rot to forward vector
 local function rotToDir(rot)
     local z = math.rad(rot.z)
     local x = math.rad(rot.x)
@@ -11,7 +11,7 @@ local function rotToDir(rot)
     return vector3(-math.sin(z) * num, math.cos(z) * num, math.sin(x))
 end
 
--- spawn or move ball
+-- spawn or move ball to coords (statisch, keine Physik)
 local function placeBallAt(coords)
     if not ball or not DoesEntityExist(ball) then
         ball = CreateObjectNoOffset(tennisModel, coords.x, coords.y, coords.z, false, false, false)
@@ -32,7 +32,7 @@ local function removeBall()
     end
 end
 
--- raycast from camera
+-- do a raycast from camera forward
 local function raycastFromCamera()
     local camCoords = GetGameplayCamCoord()
     local camRot = GetGameplayCamRot(2)
@@ -44,53 +44,33 @@ local function raycastFromCamera()
         farCoords.x, farCoords.y, farCoords.z,
         -1, PlayerPedId(), 7
     )
-    local _, hit, endCoords = GetShapeTestResult(handle)
+    local retval, hit, endCoords, surfaceNormal, entityHit = GetShapeTestResult(handle)
     if hit and endCoords then
-        return endCoords
+        return endCoords, entityHit
     end
-    return nil
+    return nil, nil
 end
 
--- copy coords with ox_lib
+-- copy via NUI (html) and print to chat
 local function copyCoords(coords)
     if not coords then return end
     local text = string.format("vector3(%.3f, %.3f, %.3f)", coords.x, coords.y, coords.z)
-    lib.setClipboard(text)
-    lib.notify({
-        title = 'neilo_coords',
-        description = 'Coordinates copied to clipboard:\n' .. text,
-        type = 'success'
-    })
+    -- send to NUI to copy to system clipboard
+    SendNUIMessage({ action = 'copy', text = text })
+    -- print to chat
+    TriggerEvent('chat:addMessage', { args = { '^2[TennisCoords] ^7Koords kopiert:', text } })
 end
 
--- main placement loop (starts only when enabled)
-local function startPlacementLoop()
-    CreateThread(function()
-        RequestModel(tennisModel)
-        while not HasModelLoaded(tennisModel) do Wait(10) end
-
-        while enabled do
-            Wait(0)
-            local hitCoords = raycastFromCamera()
-            if hitCoords then
-                local placed = vector3(hitCoords.x, hitCoords.y, hitCoords.z - 0.03)
-                placeBallAt(placed)
-                lastCoords = placed
-            end
-        end
-        -- cleanup wenn beendet
-        removeBall()
-    end)
-end
-
--- commands
+-- ======================
+-- Commands & KeyMapping
+-- ======================
 RegisterCommand('toggleball', function()
     enabled = not enabled
-    if enabled then
-        lib.notify({ title = 'neilo_coords', description = 'Enabled. Press F7 to copy coords.', type = 'info' })
-        startPlacementLoop()
+    if not enabled then
+        removeBall()
+        TriggerEvent('chat:addMessage', { args = { '^3[TennisCoords] ^7Deaktiviert.' } })
     else
-        lib.notify({ title = 'neilo_coords', description = 'Disabled.', type = 'warning' })
+        TriggerEvent('chat:addMessage', { args = { '^3[TennisCoords] ^7Aktiviert. Nutze F7 um Koords zu kopieren.' } })
     end
 end, false)
 
@@ -98,10 +78,39 @@ RegisterCommand('copycoords', function()
     if lastCoords then
         copyCoords(lastCoords)
     else
-        lib.notify({ title = 'neilo_coords', description = 'No valid coords found.', type = 'error' })
+        TriggerEvent('chat:addMessage', { args = { '^1[TennisCoords] ^7Keine gültigen Koords gefunden.' } })
     end
 end, false)
 
--- keybinds
 RegisterKeyMapping('toggleball', 'Toggle Tennisball Placement', 'keyboard', 'F6')
 RegisterKeyMapping('copycoords', 'Copy shown coords to clipboard', 'keyboard', 'F7')
+
+-- ======================
+-- Main Loop
+-- ======================
+CreateThread(function()
+    RequestModel(tennisModel)
+    while not HasModelLoaded(tennisModel) do
+        Wait(10)
+    end
+
+    while true do
+        Wait(0)
+
+        if enabled then
+            local hitCoords, hitEntity = raycastFromCamera()
+            if hitCoords then
+                local placed = vector3(hitCoords.x, hitCoords.y, hitCoords.z - 0.03)
+                placeBallAt(placed)
+                lastCoords = placed
+            end
+        else
+            Wait(250)
+        end
+    end
+end)
+
+-- NUI callback (optional)
+RegisterNUICallback('copied', function(data, cb)
+    cb('ok')
+end)
