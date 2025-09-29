@@ -8,7 +8,6 @@ A simple FiveM client-side script to place a tennis ball (or any prop) at the ex
 
 - Toggle the tennis ball placement with `F6` or `/toggleball`
 - Copy the exact coordinates to your clipboard with `F7` or `/copycoords`
-- Ball stays **static and collisionless**, always at the exact surface your camera points at
 - Outputs coordinates in `vector3(x, y, z)` format ready for `ox_target`
 - Lightweight and easy to configure
 
