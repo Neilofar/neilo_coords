@@ -4,7 +4,7 @@ lua54 'yes'
 
 author 'Neilofar'
 description 'Tennisball coord helper for ox_target'
-version '1.0.0'
+version '2.0.0'
 
 shared_scripts {
     '@ox_lib/init.lua'
