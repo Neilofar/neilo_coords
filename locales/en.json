@@ -1,0 +1,19 @@
+{
+  "title": "TennisCoords",
+  "commands": {
+    "toggleball": {
+      "help": "Toggle tennis ball coordinate helper on/off"
+    },
+    "copycoords": {
+      "help": "Copy current coordinates to clipboard"
+    }
+  },
+  "notifications": {
+    "deactivated": "Deactivated.",
+    "activated": "Activated. Use /copycoords to copy coordinates.",
+    "coords_copied": "Coordinates copied: %s",
+    "no_valid_coords": "No valid coordinates found.",
+    "press_g_to_copy": "Press [G] to copy coordinates"
+  }
+}
+

@@ -1,0 +1,19 @@
+{
+  "title": "TennisCoords",
+  "commands": {
+    "toggleball": {
+      "help": "تفعيل/إلغاء تفعيل مساعد إحداثيات الكرة التنس"
+    },
+    "copycoords": {
+      "help": "نسخ الإحداثيات الحالية إلى الحافظة"
+    }
+  },
+  "notifications": {
+    "deactivated": "تم إلغاء التفعيل.",
+    "activated": "تم التفعيل. استخدم /copycoords لنسخ الإحداثيات.",
+    "coords_copied": "تم نسخ الإحداثيات: %s",
+    "no_valid_coords": "لم يتم العثور على إحداثيات صالحة.",
+    "press_g_to_copy": "اضغط [G] لنسخ الإحداثيات"
+  }
+}
+
