@@ -1,9 +1,8 @@
-local tennisModel = 'prop_tennis_ball' -- Model
+local tennisModel = 'prop_tennis_ball'
 local ball = nil
 local enabled = false
 local lastCoords = nil
 
--- helper: convert cam rot to forward vector
 local function rotToDir(rot)
     local z = math.rad(rot.z)
     local x = math.rad(rot.x)
@@ -11,7 +10,6 @@ local function rotToDir(rot)
     return vector3(-math.sin(z) * num, math.cos(z) * num, math.sin(x))
 end
 
--- spawn or move ball to coords (statisch, keine Physik)
 local function placeBallAt(coords)
     if not ball or not DoesEntityExist(ball) then
         ball = CreateObjectNoOffset(tennisModel, coords.x, coords.y, coords.z, false, false, false)
@@ -24,7 +22,6 @@ local function placeBallAt(coords)
     end
 end
 
--- remove ball
 local function removeBall()
     if ball and DoesEntityExist(ball) then
         DeleteObject(ball)
@@ -32,7 +29,6 @@ local function removeBall()
     end
 end
 
--- do a raycast from camera forward
 local function raycastFromCamera()
     local camCoords = GetGameplayCamCoord()
     local camRot = GetGameplayCamRot(2)
@@ -51,13 +47,10 @@ local function raycastFromCamera()
     return nil, nil
 end
 
--- copy using ox_lib clipboard and notify
 local function copyCoords(coords)
     if not coords then return end
     local text = string.format("vector3(%.3f, %.3f, %.3f)", coords.x, coords.y, coords.z)
-    -- copy to clipboard using ox_lib
     lib.setClipboard(text)
-    -- show notification using ox_lib
     lib.notify({
         title = locale('title'),
         description = locale('notifications.coords_copied', text),
@@ -66,13 +59,11 @@ local function copyCoords(coords)
     })
 end
 
--- ======================
--- Commands & Events
--- ======================
 RegisterNetEvent('neilo_coords:toggleBall', function()
     enabled = not enabled
     if not enabled then
         removeBall()
+        lib.hideTextUI()
         lib.notify({
             title = locale('title'),
             description = locale('notifications.deactivated'),
@@ -102,9 +93,6 @@ RegisterNetEvent('neilo_coords:copyCoords', function()
     end
 end)
 
--- ======================
--- Main Loop
--- ======================
 CreateThread(function()
     RequestModel(tennisModel)
     while not HasModelLoaded(tennisModel) do
@@ -115,13 +103,43 @@ CreateThread(function()
         Wait(0)
 
         if enabled then
+            DisableControlAction(0, 24, true)
+            DisableControlAction(0, 25, true)
+            DisableControlAction(0, 22, true)
+            DisableControlAction(0, 140, true)
+            DisableControlAction(0, 141, true)
+            DisableControlAction(0, 142, true)
+            
             local hitCoords, hitEntity = raycastFromCamera()
             if hitCoords then
                 local placed = vector3(hitCoords.x, hitCoords.y, hitCoords.z - 0.03)
                 placeBallAt(placed)
                 lastCoords = placed
+                
+                local text = locale('notifications.press_g_to_copy') or 'Press [G] to copy coordinates'
+                lib.showTextUI(text, {
+                    position = 'top-center'
+                })
+                
+                if IsControlJustPressed(0, 47) then
+                    if lastCoords then
+                        lib.hideTextUI()
+                        copyCoords(lastCoords)
+                        enabled = false
+                        removeBall()
+                        lib.notify({
+                            title = locale('title'),
+                            description = locale('notifications.deactivated'),
+                            type = 'info',
+                            duration = 3000
+                        })
+                    end
+                end
+            else
+                lib.hideTextUI()
             end
         else
+            lib.hideTextUI()
             Wait(250)
         end
     end

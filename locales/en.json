@@ -12,7 +12,8 @@
     "deactivated": "Deactivated.",
     "activated": "Activated. Use /copycoords to copy coordinates.",
     "coords_copied": "Coordinates copied: %s",
-    "no_valid_coords": "No valid coordinates found."
+    "no_valid_coords": "No valid coordinates found.",
+    "press_g_to_copy": "Press [G] to copy coordinates"
   }
 }
 

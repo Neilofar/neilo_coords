@@ -1,4 +1,3 @@
--- Register commands using ox_lib
 lib.addCommand('toggleball', {
     help = locale('commands.toggleball.help'),
     restricted = false
